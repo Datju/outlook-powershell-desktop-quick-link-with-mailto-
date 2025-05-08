@@ -1,0 +1,56 @@
+# PowerShell Script to Create Outlook Email Shortcut with Pre-filled Recipient
+# Alternative method using direct URL shortcut
+
+# Set the email address you want to pre-fill
+$emailAddress = "Your@email.com"
+
+# Create mailto URL with parameters
+$mailtoUrl = "mailto:$emailAddress"
+
+# Get the path to the user's desktop
+$desktopPath = "C:\Users\Public\Desktop\"
+Write-Host "Desktop path: $desktopPath"
+
+# Create a shortcut file directly
+$shortcutPath = "$desktopPath\Email Support.url"
+
+# Create the .url file content
+$urlContent = @"
+[InternetShortcut]
+URL=$mailtoUrl
+IconIndex=0
+"@
+
+# For Outlook icon (optional)
+$possiblePaths = @(
+    "${env:ProgramFiles}\Microsoft Office\root\Office16\OUTLOOK.EXE",
+    "${env:ProgramFiles(x86)}\Microsoft Office\root\Office16\OUTLOOK.EXE",
+    "${env:ProgramFiles}\Microsoft Office\Office16\OUTLOOK.EXE",
+    "${env:ProgramFiles(x86)}\Microsoft Office\Office16\OUTLOOK.EXE"
+)
+
+foreach ($path in $possiblePaths) {
+    if (Test-Path $path) {
+        $urlContent += "`nIconFile=$path"
+        Write-Host "Using Outlook icon from: $path"
+        break
+    }
+}
+
+# Write the shortcut file
+try {
+    Set-Content -Path $shortcutPath -Value $urlContent -Force
+    Write-Host "Shortcut created successfully at: $shortcutPath" -ForegroundColor Green
+   
+    # Verify the shortcut was created
+    if (Test-Path $shortcutPath) {
+        Write-Host "Verified: Shortcut exists at $shortcutPath" -ForegroundColor Green
+    } else {
+        Write-Host "Error: Shortcut file was not found after creation!" -ForegroundColor Red
+    }
+} catch {
+    Write-Host "Error creating shortcut: $_" -ForegroundColor Red
+}
+
+Write-Host "`nProcess completed. The shortcut 'IconName.url' should now be on your desktop."
+Write-Host "If you don't see it, try refreshing your desktop (F5) or check the error messages above."
